@@ -52,7 +52,7 @@ if ($message == "votebot create") {
                   "label": "Create Poll",
                   "type": "link",
                   "payload": {
-                      "url": "https://7d9db3c2.ngrok.io/create_vote.php?roomId='.$room_id.'"
+                      "url": "https://vote-bot-kiwari.herokuapp.com/create_vote.php?roomId='.$room_id.'"
                   }
               }
           ]
@@ -109,7 +109,7 @@ if ($message == "votebot create") {
     $data['image'] = "http://blog.qsample.com/wp-content/uploads/2014/08/voting.jpg";
     $data['title'] = $vote['title'];
     $data['description'] = $vote['body'];
-    $data['url'] = "https://qiscus.com";
+    $data['url'] = "https://web.kiwari.id";
     $data['buttons'] = array();
 
     $optionQuery = "SELECT a.*,COUNT(b.vote_item_id) total FROM vote_item a LEFT JOIN vote_result b ON a.id = b.vote_item_id WHERE a.vote_id = $vote[id] GROUP BY a.id";
@@ -121,7 +121,7 @@ if ($message == "votebot create") {
         $button['label'] = "VBV.".$row['id']." ".$row['value']." (".$row['total'].")";
         $button['type'] = "postback";
         $payload = array();
-        $payload['url'] = "https://7d9db3c2.ngrok.io/";
+        $payload['url'] = "https://vote-bot-kiwari.herokuapp.com";
         $payload['method'] = "POST";
         $payload['payload'] = null;
         $button['payload'] = $payload; 

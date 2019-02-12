@@ -25,7 +25,7 @@ $data['text'] = "poll #$voteId";
 $data['image'] = "http://blog.qsample.com/wp-content/uploads/2014/08/voting.jpg";
 $data['title'] = $voteTitle;
 $data['description'] = $voteDesc;
-$data['url'] = "https://qiscus.com";
+$data['url'] = "https://web.kiwari.id";
 $data['buttons'] = array();
 
 foreach ($_POST["option"] as $voteItem){
@@ -35,7 +35,7 @@ foreach ($_POST["option"] as $voteItem){
     $button['label'] = "VBV.".$optId." ".$voteItem;
     $button['type'] = "postback";
     $payload = array();
-    $payload['url'] = "https://7d9db3c2.ngrok.io/";
+    $payload['url'] = "https://vote-bot-kiwari.herokuapp.com";
     $payload['method'] = "POST";
     $payload['payload'] = null;
     $button['payload'] = $payload; 
