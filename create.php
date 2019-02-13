@@ -49,7 +49,7 @@ foreach ($_POST["option"] as $voteItem){
     $optQuery = "INSERT INTO vote_item (vote_id,value) VALUES ('$voteId','$voteItem') RETURNING id;";
     $optQueryExec = pg_query($db,$optQuery); 
     $optRow = pg_fetch_row($optQueryExec); 
-    $optId = $voteRow['0'];
+    $optId = $optRow['0'];
 
     $button = array();
     $button['label'] = "VBV.".$optId." ".$voteItem;
