@@ -1,22 +1,20 @@
 <?php 
+$db_host = "ec2-54-235-159-101.compute-1.amazonaws.com";
+$db_name = "d3poplfkcj6hve";
+$db_user = "lbhprhtzuemwyg";
+$db_pass = "531f614bf06282f8d96c6fab44a11876bdd060ec091c71af5fd6b124d534f6b0";
+$db_port = "5432";
 
-function createVote($db,$room_id,$creator,$token){
-    $statement = $db->prepare("INSERT INTO mytable (myvalue) VALUES(?)");
-    $db->exec("INSERT INTO vote (creator) VALUES ('$creator');");
-    $lastid = $db->lastInsertRowID();
+$db_conn_string = "host=".$db_host." port=".$db_port." dbname=".$db_name." user=".$db_user." password=".$db_pass;
 
-    $message = "Vote Created \nVote id: ".$lastid."\nto set vote title, use command:\nvotebot#".$lastid."#settitle#[your vote title]\nremember not to use '#' inside the title";
+$db = pg_connect($db_conn_string);
 
-    $data = array(
-        'token' => $token,
-        'topic_id' => $room_id,
-        'comment' => $message
-      );
-    
-    return $data;
+if (!$db) {
+    echo "An DB error occurred.\n";
+    exit;
 }
 
-$db = new SQLite3('vote.db');
+
 $QISCUS_APP_ID = "kiwari-prod";
 $QISCUS_SDK_SECRET = "kiwari-prod-123";
 $bot_token = "Q0IQHdUvmPs5JKfSV9ml";
@@ -34,7 +32,7 @@ $QISCUS_SDK_SECRET = "kiwari-prod-123";
 
 $url = 'https://api.qiscus.com/api/v2/mobile/post_comment';
 
-
+$dbErrorMessage = "DB ERROR occured";
 echo $message;
 
 $responseToMessage = false;
@@ -81,25 +79,51 @@ if ($message == "votebot create") {
     error_log(print_r($messageSplit[0],TRUE));
 
     $optQuery = "SELECT * FROM vote_item where id = $optionId";
-    $selectedOption = $db->querySingle($optQuery,TRUE); 
+    $optResult = pg_query($db, $optQuery);
+    $optRows = pg_num_rows($optResult);
+    if (!$optResult) {
+        error_log(print_r($dbErrorMessage,TRUE));
+        exit;
+    }
+    if ($optRows == 0){
+        error_log(print_r("Option not found",TRUE));
+        exit;
+    }
+
+    $selectedOption = pg_fetch_assoc($optResult); 
 
     $voteQuery = "SELECT * FROM vote where id = $selectedOption[vote_id]";
-    $vote = $db->querySingle($voteQuery,TRUE);
+    $voteResult = pg_query($db, $voteQuery);
+    $optRows = pg_num_rows($optResult);
+    if (!$voteResult) {
+        error_log(print_r($dbErrorMessage,voteResult));
+        exit;
+    }
+    if (!$voteResult) {
+        error_log(print_r("Polling not found",voteResult));
+        exit;
+    }
+    $vote = pg_fetch_assoc($voteResult); 
 
     $checkQuery = "SELECT * FROM vote_result WHERE user_id = '$sender' AND vote_id = $vote[id] ";
-    $checkData = $db->querySingle($checkQuery,TRUE);
+    $checkResult = pg_query($db, $checkQuery);
+    $checkRows = pg_num_rows($checkResult);
+    if (!$checkResult) {
+        error_log(print_r($dbErrorMessage,TRUE));
+        exit;
+    }
     
-    $voteQuery = "";
+    $updateQuery = "";
     
-    if (empty($checkData)){
-        $voteQuery = "INSERT INTO vote_result (user_id,vote_id,vote_item_id) VALUES ('$sender',$vote[id],$optionId)";
+    if ($checkRows == 0){
+        $updateQuery = "INSERT INTO vote_result (user_id,vote_id,vote_item_id) VALUES ('$sender',$vote[id],$optionId)";
         error_log(print_r("Belum vote",TRUE));
     }else{
-        $voteQuery = "UPDATE vote_result SET vote_item_id = $optionId WHERE user_id = '$sender' AND vote_id = $vote[id]";
+        $updateQuery = "UPDATE vote_result SET vote_item_id = $optionId WHERE user_id = '$sender' AND vote_id = $vote[id]";
         error_log(print_r("Sudah vote",TRUE));
     }
     
-    $db->exec($voteQuery);
+    pg_query($db,$updateQuery);
     
     $comment['token'] = $bot_token;
     $comment['type'] = "card";
@@ -113,10 +137,11 @@ if ($message == "votebot create") {
     $data['buttons'] = array();
 
     $optionQuery = "SELECT a.*,COUNT(b.vote_item_id) total FROM vote_item a LEFT JOIN vote_result b ON a.id = b.vote_item_id WHERE a.vote_id = $vote[id] GROUP BY a.id";
-    $optionsRes = $db->query($optionQuery);
+    
+    $optionsRes = pg_query($db, $optionQuery);;
 
 
-    while ($row = $optionsRes->fetchArray()) {
+    while ($row = pg_fetch_assoc($optionsRes)) {
         $button = array();
         $button['label'] = "VBV.".$row['id']." ".$row['value']." (".$row['total'].")";
         $button['type'] = "postback";
@@ -145,14 +170,6 @@ if ($message == "votebot create") {
     $response = file_get_contents($url, FALSE, $context);
 }
 
-$db = null;
- 
-// if ($responseToMessage) {
-//     $response = file_get_contents($url, FALSE, $context);
-//     error_log(print_r($response, TRUE)); 
-//     $db = null;
-// }
-
-
-    
+pg_close($db);
+     
 ?>
