@@ -104,7 +104,8 @@ if ($message == "votebot create") {
         exit;
     }
     $vote = pg_fetch_assoc($voteResult); 
-
+    error_log(print_r($vote,voteResult));
+    
     $checkQuery = "SELECT * FROM vote_result WHERE user_id = '$sender' AND vote_id = $vote[id] ";
     $checkResult = pg_query($db, $checkQuery);
     $checkRows = pg_num_rows($checkResult);
