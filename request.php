@@ -105,7 +105,7 @@ if ($message == "votebot create") {
     }
     $vote = pg_fetch_assoc($voteResult); 
     error_log(print_r($vote,voteResult));
-    
+
     $checkQuery = "SELECT * FROM vote_result WHERE user_id = '$sender' AND vote_id = $vote[id] ";
     $checkResult = pg_query($db, $checkQuery);
     $checkRows = pg_num_rows($checkResult);
@@ -128,7 +128,7 @@ if ($message == "votebot create") {
     
     $comment['token'] = $bot_token;
     $comment['type'] = "card";
-    $comment['topic_id'] = $vote['roomId'];
+    $comment['topic_id'] = $vote['roomid'];
     $data = array();
     $data['text'] = "poll #$vote[id]";
     $data['image'] = "http://blog.qsample.com/wp-content/uploads/2014/08/voting.jpg";
